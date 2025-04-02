@@ -6,7 +6,13 @@
  */
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import authService, { AuthUser } from "@/services/authService";
+import authService from "@/services/authService";
+
+// Define AuthUser type
+interface AuthUser {
+  id: string;
+  username: string;
+}
 
 interface AuthContextType {
   user: AuthUser | null;
@@ -26,10 +32,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const initializeAuth = async () => {
       try {
         // Initialize auth headers with stored token if any
-        authService.initAuth();
+        authService.initAuthHeaders();
         
         // Check if token is valid and get current user
-        const currentUser = await authService.getCurrentUser();
+        const currentUser = authService.getCurrentUser();
         setUser(currentUser);
       } catch (error) {
         console.error("Auth initialization error:", error);

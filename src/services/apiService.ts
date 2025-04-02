@@ -1,10 +1,11 @@
 
+import axios from 'axios';
 import { Worker, AttendanceRecord, Payment, AttendanceStatus } from "../context/AppContext";
 
 // Base API URL - would be configured based on environment
 const API_URL = process.env.NODE_ENV === 'production' 
   ? 'https://your-production-api.googlegcloud.app/api'
-  : 'http://localhost:5000/api';
+  : 'http://localhost:5001/api';
 
 // Error handling helper
 const handleApiError = (error: any, message: string) => {
@@ -16,9 +17,10 @@ const handleApiError = (error: any, message: string) => {
 // Worker operations
 export const fetchWorkers = async (): Promise<Worker[]> => {
   try {
-    const response = await fetch(`${API_URL}/workers`);
-    if (!response.ok) throw new Error(`HTTP error ${response.status}`);
-    const workers = await response.json();
+    const response = await axios.get(`${API_URL}/workers`);
+    if (!response.data) throw new Error(`HTTP error ${response.status}`);
+    
+    const workers = response.data;
     return workers.map((worker: any) => ({
       ...worker,
       id: worker._id, // Map MongoDB _id to our id field

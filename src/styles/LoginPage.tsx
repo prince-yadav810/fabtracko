@@ -4,19 +4,10 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import axios from 'axios';
 import '../styles/LoginPage.css';
+import authService from '../services/authService';
 
 // Define the API URL
 const API_URL = 'http://localhost:5001/api';
-
-// Response types
-interface LoginResponse {
-  message: string;
-  token: string;
-  user: {
-    id: string;
-    username: string;
-  };
-}
 
 const LoginPage = () => {
   const [username, setUsername] = useState('');
@@ -30,21 +21,8 @@ const LoginPage = () => {
     setError('');
 
     try {
-      // Call the backend login API
-      const response = await axios.post<LoginResponse>(
-        `${API_URL}/auth/login`,
-        { username, password }
-      );
-      
-      const { token, user } = response.data;
-      
-      // Store token in localStorage
-      localStorage.setItem('auth_token', token);
-      localStorage.setItem('user', JSON.stringify(user));
-      localStorage.setItem('authenticated', 'true');
-      
-      // Set Authorization header for future requests
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      // Call the login method from authService
+      await authService.login(username, password);
       
       toast.success('Login successful!');
       navigate('/'); // Redirect to homepage
