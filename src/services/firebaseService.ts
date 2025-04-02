@@ -1,4 +1,3 @@
-
 import { db } from "../config/firebase";
 import { 
   collection, 
@@ -12,14 +11,21 @@ import {
   updateDoc 
 } from "firebase/firestore";
 import { Worker, AttendanceRecord, Payment, AttendanceStatus } from "../context/AppContext";
+import authService from "./authService";
 
 // Collection references
 const WORKERS_COLLECTION = "workers";
 const ATTENDANCE_COLLECTION = "attendance";
 const PAYMENTS_COLLECTION = "payments";
 
+// Ensure auth headers are set before any API call
+const ensureAuthHeaders = () => {
+  authService.initAuthHeaders();
+};
+
 // Worker operations
 export const fetchWorkers = async (): Promise<Worker[]> => {
+  ensureAuthHeaders();
   try {
     const querySnapshot = await getDocs(collection(db, WORKERS_COLLECTION));
     const workers: Worker[] = [];
@@ -64,6 +70,7 @@ export const deleteWorkerFromFirebase = async (id: string): Promise<void> => {
 
 // Attendance operations
 export const fetchAttendance = async (): Promise<AttendanceRecord[]> => {
+  ensureAuthHeaders();
   try {
     const querySnapshot = await getDocs(collection(db, ATTENDANCE_COLLECTION));
     const attendance: AttendanceRecord[] = [];
@@ -113,6 +120,7 @@ export const markAttendanceInFirebase = async (
 
 // Payment operations
 export const fetchPayments = async (): Promise<Payment[]> => {
+  ensureAuthHeaders();
   try {
     const querySnapshot = await getDocs(collection(db, PAYMENTS_COLLECTION));
     const payments: Payment[] = [];
@@ -151,6 +159,7 @@ export const seedInitialData = async (
   attendance: AttendanceRecord[],
   payments: Payment[]
 ): Promise<void> => {
+  ensureAuthHeaders();
   try {
     // Add workers
     for (const worker of workers) {

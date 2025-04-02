@@ -1,102 +1,50 @@
 
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = 'http://localhost:5001/api';
+const TOKEN_KEY = 'auth_token';
 
-const TOKEN_KEY = 'fabtracko_auth_token';
-
-export interface AuthUser {
-  id: string;
-  username: string;
-}
-
-interface LoginResponse {
-  message: string;
-  token: string;
-  user: AuthUser;
-}
-
-// Store token in localStorage
-const setToken = (token: string) => {
-  localStorage.setItem(TOKEN_KEY, token);
-};
-
-// Get token from localStorage
-const getToken = (): string | null => {
-  return localStorage.getItem(TOKEN_KEY);
-};
-
-// Remove token from localStorage
-const removeToken = () => {
-  localStorage.removeItem(TOKEN_KEY);
-};
-
-// Set auth token for axios
-const setAuthHeader = () => {
-  const token = getToken();
+// Initialize auth headers with stored token if any
+export const initAuthHeaders = () => {
+  const token = localStorage.getItem(TOKEN_KEY);
   if (token) {
     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-  } else {
-    delete axios.defaults.headers.common['Authorization'];
   }
-};
-
-// Login
-const login = async (username: string, password: string): Promise<AuthUser> => {
-  try {
-    const response = await axios.post<LoginResponse>(
-      `${API_URL}/auth/login`,
-      { username, password }
-    );
-    
-    const { token, user } = response.data;
-    setToken(token);
-    setAuthHeader();
-    
-    return user;
-  } catch (error) {
-    if (axios.isAxiosError(error) && error.response) {
-      throw new Error(error.response.data.message || 'Login failed');
-    }
-    throw new Error('Login failed. Please try again.');
-  }
-};
-
-// Logout
-const logout = () => {
-  removeToken();
-  setAuthHeader();
 };
 
 // Check if user is authenticated
-const isAuthenticated = (): boolean => {
-  return !!getToken();
+export const isAuthenticated = (): boolean => {
+  return localStorage.getItem('authenticated') === 'true' && !!localStorage.getItem(TOKEN_KEY);
 };
 
-// Verify token and get current user
-const getCurrentUser = async (): Promise<AuthUser | null> => {
-  try {
-    setAuthHeader();
-    const response = await axios.get(`${API_URL}/auth/verify`);
-    return response.data.user;
-  } catch (error) {
-    removeToken();
-    return null;
+// Logout function
+export const logout = () => {
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem('user');
+  localStorage.removeItem('authenticated');
+  delete axios.defaults.headers.common['Authorization'];
+};
+
+// Get current user
+export const getCurrentUser = () => {
+  const userStr = localStorage.getItem('user');
+  if (userStr) {
+    return JSON.parse(userStr);
   }
+  return null;
 };
 
-// Initialize authentication on app load
-const initAuth = () => {
-  setAuthHeader();
+// Get token
+export const getToken = (): string | null => {
+  return localStorage.getItem(TOKEN_KEY);
 };
 
-export const authService = {
-  login,
-  logout,
+const authService = {
+  initAuthHeaders,
   isAuthenticated,
+  logout,
   getCurrentUser,
-  getToken,
-  initAuth
+  getToken
 };
 
 export default authService;
