@@ -1,6 +1,7 @@
 
 import axios from 'axios';
 import { Worker, AttendanceRecord, Payment, AttendanceStatus } from "../context/AppContext";
+import authService from '../services/authService';
 
 // Base API URL - would be configured based on environment
 const API_URL = process.env.NODE_ENV === 'production' 
@@ -13,6 +14,17 @@ const handleApiError = (error: any, message: string) => {
   // Re-throw for component-level handling
   throw error;
 }
+
+// Setup request interceptor to always include the latest token
+axios.interceptors.request.use((config) => {
+  const token = authService.getToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+}, (error) => {
+  return Promise.reject(error);
+});
 
 // Worker operations
 export const fetchWorkers = async (): Promise<Worker[]> => {
